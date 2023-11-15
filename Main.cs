@@ -95,6 +95,7 @@ namespace WorkshopInstaller {
         public static void OnDownloadItemResult(DownloadItemResult_t callback) {
             var currentApp = new AppId_t(2186680);
             if (callback.m_unAppID == currentApp) {
+                /* This might cause problems when updating an Owlcat Template Mod that's already loaded? Instead updating is delayed until after restart.
                 if (callback.m_eResult == EResult.k_EResultOK) {
                     log.Log($"Download Succeeded for ItemID: {callback.m_nPublishedFileId}");
                     uint MaxPathLength = 256;
@@ -108,6 +109,7 @@ namespace WorkshopInstaller {
                 } else {
                     log.Log($"Download Failed for ItemID: {callback.m_nPublishedFileId} with result: {callback.m_eResult}");
                 }
+                */
             }
         }
         public static void InstallLocally(PublishedFileId_t item, string pathToFiles) {
@@ -156,7 +158,7 @@ namespace WorkshopInstaller {
                     File.Copy(Path.Combine(dir.FullName, file), Path.Combine(targetDir.FullName, Path.GetFileName(file)), true);
                 }
                 settings.installedItems[item] = modInfo.UniqueName;
-                HandleManagerSettings(true, item);
+                if (!isUMM) HandleManagerSettings(true, item);
             } catch (Exception ex) {
                 log.Log(ex.ToString());
             } finally {
@@ -165,7 +167,6 @@ namespace WorkshopInstaller {
         }
         public static void UninstallLocally(PublishedFileId_t item) {
             try {
-                HandleManagerSettings(false, item);
                 var UMMDir = Path.Combine(persistentPath, "UnityModManager");
                 var OwlcatTemplateDir = Path.Combine(persistentPath, "Modifications");
                 foreach (var directory in Directory.GetDirectories(UMMDir)) {
@@ -176,6 +177,7 @@ namespace WorkshopInstaller {
                 foreach (var directory in Directory.GetDirectories(OwlcatTemplateDir)) {
                     if (Path.GetFileName(directory) == settings.installedItems[item]) {
                         new DirectoryInfo(Path.Combine(OwlcatTemplateDir, Path.GetFileName(directory))).Delete(true);
+                        HandleManagerSettings(false, item);
                     }
                 }
                 settings.installedItems.Remove(item);
