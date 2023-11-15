@@ -22,7 +22,6 @@ namespace WorkshopInstaller {
         static bool Load(UnityModManager.ModEntry modEntry) {
             log = modEntry.Logger;
             settings = UnityModManager.ModSettings.Load<Settings>(modEntry);
-            modEntry.OnGUI = OnGUI;
             modEntry.OnSaveGUI = OnSaveGUI;
             modEntry.OnUnload = OnUnload;
             HarmonyInstance = new Harmony(modEntry.Info.Id);
@@ -32,8 +31,7 @@ namespace WorkshopInstaller {
                 log.Log("Steamworks not initialized; Can't handle subscribed items");
                 return false;
             }
-            var task = Task.Run(HandleSubscribedItems);
-            task.Wait();
+            HandleSubscribedItems();
             return true;
         }
         private static Callback<DownloadItemResult_t> downloadItemResultCallback;
@@ -69,7 +67,7 @@ namespace WorkshopInstaller {
                         if (!IsInstalled) {
                             log.Log($"Trying to install Workshop item with ID: {item}");
                             SteamUGC.DownloadItem(item, true);
-                        } else if (NeedsUpdate && settings.shouldAutoUpdate) {
+                        } else if (NeedsUpdate) {
                             log.Log($"Trying to update Workshop item with ID: {item}");
                             SteamUGC.DownloadItem(item, true);
                         } else {
@@ -121,7 +119,13 @@ namespace WorkshopInstaller {
             dir.Create();
             try {
                 try {
-                    var zipFile = Path.Combine(pathToFiles, Directory.GetFiles(pathToFiles, "*.zip")[0]);
+                    string zipFile;
+                    if (pathToFiles.EndsWith(@"_legacy.bin")) {
+                        log.Log("Steam _legacy.bin file discovered!");
+                        zipFile = pathToFiles;
+                    } else {
+                        zipFile = Path.Combine(pathToFiles, Directory.GetFiles(pathToFiles, "*.zip")[0]);
+                    }
                     ZipFile.ExtractToDirectory(zipFile, dir.FullName);
                 } catch (IndexOutOfRangeException ex) {
                     foreach (var file in Directory.GetFiles(pathToFiles)) {
@@ -212,12 +216,6 @@ namespace WorkshopInstaller {
             File.WriteAllText(filePath, JsonConvert.SerializeObject(ModManagerSettings, Formatting.Indented));
             new DirectoryInfo(Path.Combine(persistentPath, "UnityModManager")).Create();
             new DirectoryInfo(Path.Combine(persistentPath, "Modifications")).Create();
-        }
-        public static void OnGUI(UnityModManager.ModEntry modEntry) {
-            var hasChanged = GUILayout.Toggle(settings.shouldAutoUpdate, "Automatically Update Mods?");
-            if (hasChanged != settings.shouldAutoUpdate) {
-                settings.shouldAutoUpdate = !settings.shouldAutoUpdate;
-            }
         }
         public static void OnSaveGUI(UnityModManager.ModEntry modEntry) {
             settings.Save(modEntry);
