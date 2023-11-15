@@ -175,7 +175,7 @@ namespace WorkshopInstaller {
                 }
                 foreach (var directory in Directory.GetDirectories(OwlcatTemplateDir)) {
                     if (Path.GetFileName(directory) == settings.installedItems[item]) {
-                        new DirectoryInfo(Path.Combine(UMMDir, Path.GetFileName(directory))).Delete(true);
+                        new DirectoryInfo(Path.Combine(OwlcatTemplateDir, Path.GetFileName(directory))).Delete(true);
                     }
                 }
                 settings.installedItems.Remove(item);
