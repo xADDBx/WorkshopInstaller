@@ -1,0 +1,12 @@
+﻿{
+  "Id": "_WorkshopInstaller",
+  "DisplayName": "Workshop Mod Installer",
+  "Author": "ADDB",
+  "Version": "1.0.0",
+  "ManagerVersion": "0.25.0",
+  "Requirements": [],
+  "AssemblyName": "WorkshopInstaller.dll",
+  "EntryMethod": "WorkshopInstaller.Main.Load",
+  "HomePage": "",
+  "Repository": ""
+}
